@@ -41,5 +41,53 @@ namespace ufasforms.Data
                 }
             }
         }
+
+        public static class SeedAdminUser
+        {
+            public static async Task Initialize(IServiceProvider serviceProvider)
+            {
+                using var scope = serviceProvider.CreateScope();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+                // 1. Ensure the Admin role exists
+                if (!await roleManager.RoleExistsAsync("Admin"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                }
+
+                // 2. Define the target user
+                var adminEmail = "djellal@univ-setif.dz";
+                var adminPassword = "DhB@571982";
+
+                var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+                if (adminUser == null)
+                {
+                    var user = new ApplicationUser
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+
+                    var result = await userManager.CreateAsync(user, adminPassword);
+
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, "Admin");
+                        Console.WriteLine($"Successfully seeded user: {adminEmail}");
+                    }
+                    else
+                    {
+                        // Log errors if password requirements aren't met
+                        foreach (var error in result.Errors)
+                        {
+                            Console.WriteLine($"Error: {error.Description}");
+                        }
+                    }
+                }
+            }
+        }
     }
 }

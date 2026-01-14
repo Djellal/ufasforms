@@ -1,0 +1,55 @@
+﻿@page "/etablissements/delete"
+@using Microsoft.EntityFrameworkCore
+@using ufasforms.Data
+@inject IDbContextFactory<ufasforms.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<p>Are you sure you want to delete this?</p>
+<div>
+    <h2>Etablissement</h2>
+    <hr />
+    @if (etablissement is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">NomEtablissement</dt>
+            <dd class="col-sm-10">@etablissement.NomEtablissement</dd>
+        </dl>
+        <EditForm method="post" Model="etablissement" OnValidSubmit="DeleteEtablissement" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(etablissement is null)">Delete</button> |
+            <a href="/etablissements">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Etablissement? etablissement;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        etablissement = await context.Etablissements.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (etablissement is null)
+        {
+            NavigationManager.NotFound();
+        }
+    }
+
+    private async Task DeleteEtablissement()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Etablissements.Remove(etablissement!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/etablissements");
+    }
+}

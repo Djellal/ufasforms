@@ -1,0 +1,46 @@
+﻿@page "/etablissements/create"
+@using Microsoft.EntityFrameworkCore
+@using ufasforms.Data
+@inject IDbContextFactory<ufasforms.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Etablissement</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Etablissement" OnValidSubmit="AddEtablissement" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="nometablissement" class="form-label">NomEtablissement:</label> 
+                <InputText id="nometablissement" @bind-Value="Etablissement.NomEtablissement" class="form-control" /> 
+                <ValidationMessage For="() => Etablissement.NomEtablissement" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/etablissements">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Etablissement Etablissement { get; set; } = default!;
+
+    protected override void OnInitialized() => Etablissement ??= new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddEtablissement()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Etablissements.Add(Etablissement);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/etablissements");
+    }
+}
